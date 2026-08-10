@@ -5,52 +5,43 @@
 #include "freertos/task.h"
 #include "esp_log.h"
 
-static const char *TAG = "LED";
+static const char *TAG = "interrupt_example";
+const int BTN_PIN = 4;
+static volatile int button_pressed = 0;
+static volatile bool button_pressed_flag = false;
 
-typedef struct
+static void IRAM_ATTR button_isr_handler(void *arg)
 {
-    gpio_num_t pin;
-    uint32_t period;
-    uint32_t lastTime;
-    bool state;
-} Led;
+    (void)arg;
+    button_pressed++;
+    button_pressed_flag = true;
+}
 
-static inline uint32_t millis(void)
+static void setup_button_interrupt(void)
 {
-    return (uint32_t)(esp_timer_get_time() / 1000ULL);
+    gpio_config_t io_conf = {
+        .pin_bit_mask = (1ULL << BTN_PIN),
+        .mode = GPIO_MODE_INPUT,
+        .pull_up_en = GPIO_PULLUP_ENABLE,
+        .pull_down_en = GPIO_PULLDOWN_DISABLE,
+        .intr_type = GPIO_INTR_NEGEDGE,
+    };
+    gpio_config(&io_conf);
+    gpio_install_isr_service(ESP_INTR_FLAG_IRAM);
+    gpio_isr_handler_add(BTN_PIN, button_isr_handler, NULL);
 }
 
 void app_main(void)
 {
-    Led leds[] =
-        {
-            {GPIO_NUM_4, 200, 0, false},
-            {GPIO_NUM_5, 500, 0, false},
-            {GPIO_NUM_6, 1000, 0, false},
-        };
-
-    const int ledCount = sizeof(leds) / sizeof(leds[0]);
-
-    for (int i = 0; i < ledCount; i++)
-    {
-        gpio_reset_pin(leds[i].pin);
-        gpio_set_direction(leds[i].pin, GPIO_MODE_OUTPUT);
-    }
+    setup_button_interrupt();
 
     while (1)
     {
-        uint32_t now = millis();
-
-        for (int i = 0; i < ledCount; i++)
+        if (button_pressed_flag)
         {
-            if (now - leds[i].lastTime >= leds[i].period)
-            {
-                leds[i].lastTime = now;
-                leds[i].state = !leds[i].state;
-                gpio_set_level(leds[i].pin, leds[i].state);
-            }
+            ESP_LOGI(TAG, "Button pressed %d times", button_pressed);
+            button_pressed_flag = false;
         }
-
         vTaskDelay(1);
     }
 }

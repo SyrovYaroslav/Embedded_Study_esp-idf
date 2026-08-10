@@ -4,7 +4,8 @@
   "idf.port": "/dev/ttyACM0",
   "idf.currentSetup": "/home/yaroslav/.espressif/v6.0.2/esp-idf",
   "idf.customExtraVars": {
-    "IDF_TARGET": "esp32s3"
+    "IDF_TARGET": "esp32s3",
+    "OPENOCD_USB_ADAPTER_LOCATION": "3-2"
   },
   "clangd.path": "/home/yaroslav/.espressif/tools/esp-clang/esp-20.1.1_20250829/esp-clang/bin/clangd",
   "clangd.arguments": [
@@ -12,5 +13,9 @@
     "--query-driver=**",
     "--compile-commands-dir=/home/yaroslav/esp-idf-project/build"
   ],
-  "idf.flashType": "UART"
+  "idf.flashType": "JTAG",
+  "idf.monitorPort": "/dev/ttyACM0",
+  "idf.openOcdConfigs": [
+    "board/esp32s3-builtin.cfg"
+  ]
 }
