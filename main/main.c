@@ -47,13 +47,13 @@ void app_main(void)
         {
             button_pressed_flag = false;
 
-            uint32_t now = millis();
-            if (now - last_press_time >= DEBOUNCE_TIME_MS)
+            vTaskDelay(pdMS_TO_TICKS(DEBOUNCE_TIME_MS));
+
+            if (gpio_get_level(BTN_PIN) == 0)
             {
                 button_pressed++;
                 ESP_LOGI(TAG, "Button pressed %d times", button_pressed);
             }
-            last_press_time = now;
         }
 
         vTaskDelay(1);
