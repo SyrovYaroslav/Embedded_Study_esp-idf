@@ -7,13 +7,14 @@
 
 static const char *TAG = "interrupt_example";
 const int BTN_PIN = 4;
-static volatile int button_pressed = 0;
+int button_pressed = 0;
 static volatile bool button_pressed_flag = false;
+unsigned long last_press_time = 0;
+const unsigned long DEBOUNCE_TIME_MS = 50;
 
 static void IRAM_ATTR button_isr_handler(void *arg)
 {
     (void)arg;
-    button_pressed++;
     button_pressed_flag = true;
 }
 
@@ -31,6 +32,11 @@ static void setup_button_interrupt(void)
     gpio_isr_handler_add(BTN_PIN, button_isr_handler, NULL);
 }
 
+static inline uint32_t millis(void)
+{
+    return (uint32_t)(esp_timer_get_time() / 1000ULL);
+}
+
 void app_main(void)
 {
     setup_button_interrupt();
@@ -39,9 +45,17 @@ void app_main(void)
     {
         if (button_pressed_flag)
         {
-            ESP_LOGI(TAG, "Button pressed %d times", button_pressed);
             button_pressed_flag = false;
+
+            uint32_t now = millis();
+            if (now - last_press_time >= DEBOUNCE_TIME_MS)
+            {
+                button_pressed++;
+                ESP_LOGI(TAG, "Button pressed %d times", button_pressed);
+            }
+            last_press_time = now;
         }
+
         vTaskDelay(1);
     }
 }
