@@ -13,7 +13,7 @@
     "--query-driver=**",
     "--compile-commands-dir=/home/yaroslav/esp-idf-project/build"
   ],
-  "idf.flashType": "JTAG",
+  "idf.flashType": "UART",
   "idf.monitorPort": "/dev/ttyACM0",
   "idf.openOcdConfigs": [
     "board/esp32s3-builtin.cfg"
